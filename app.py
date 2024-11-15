@@ -38,13 +38,10 @@ def on_arduino_receive(s: str):
 
 
 #! LOOP
-video = Video(cam_index, img_width, img_height)
+video = Video(cam_index, img_width, img_height, save_image_key=save_image_key)
 
 
 def loop(img: MatLike):
-    if video.is_pressed(save_image_key):
-        video.save_image()
-
     predicted_class, confidence = cnn.predict(img, isBatch=False)
     print(predicted_class, confidence)
     on_predict(predicted_class, confidence)
