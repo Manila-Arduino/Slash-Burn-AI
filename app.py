@@ -7,9 +7,12 @@ from classes.Video import Video
 cam_index = 0
 img_width = 512
 img_height = 512
-arduino_port = ""
 save_image_key = "d"
 classes = ["no_oil", "oil"]
+input_layer_name = "input_layer_4"
+output_layer_name = "output_0"
+
+arduino_port = ""
 # ? ------------------------ CONFIG
 
 
@@ -19,6 +22,8 @@ cnn = CNNImage(
     r"model.tflite",
     img_width,
     img_height,
+    input_layer_name=input_layer_name,
+    output_layer_name=output_layer_name,
 )
 
 
