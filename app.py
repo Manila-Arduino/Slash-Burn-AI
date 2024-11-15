@@ -7,7 +7,7 @@ from classes.Video import Video
 cam_index = 0
 img_width = 512
 img_height = 512
-arduino_port = "COM3"
+arduino_port = ""
 save_image_key = "d"
 classes = ["no_oil", "oil"]
 # ? ------------------------ CONFIG
@@ -46,7 +46,7 @@ def loop(img: MatLike):
 
     if arduino.available():
         arduino_str = arduino.read()
-        print(f"Arduino received: {s}")
+        print(f"Arduino received: {arduino_str}")
         on_arduino_receive(arduino_str)
 
 

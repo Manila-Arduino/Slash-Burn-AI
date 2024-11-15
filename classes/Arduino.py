@@ -9,18 +9,27 @@ class Arduino:
 
     def __post_init__(self):
         self.ser = serial.Serial(self.port, self.baudrate, timeout=1)
+        self.use_arduino = self.port is not None and self.port != ""
 
     def print(self, data: str):
-        self.ser.write(data.encode())
+        if self.use_arduino:
+            self.ser.write(data.encode())
 
     def println(self, data: str):
-        self.ser.write((data + "\n").encode())
+        if self.use_arduino:
+            self.ser.write((data + "\n").encode())
 
     def available(self):
+        if not self.use_arduino:
+            return False
+
         return self.ser.in_waiting
 
     def read(self):
+        if not self.use_arduino:
+            return ""
         return self.ser.readline().decode().strip()
 
     def close(self):
-        self.ser.close()
+        if self.use_arduino:
+            self.ser.close()
