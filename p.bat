@@ -1,9 +1,16 @@
 @echo off
+@REM ! p venv, p i package_name, p u package_name, p r
 :: Check if the project folder path is provided
 @REM ! VENV
 if "%1"=="venv" (
     python -m venv venv
     call venv\Scripts\activate
+    exit /b
+)
+
+@REM ! PIP REQUIREMENTS
+if "%1"=="r" (
+    pip install -r requirements.txt
     exit /b
 )
 
