@@ -49,8 +49,8 @@ class CNNImage:
         # print(f"SHAPE: {img.shape}")
         # print(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        # img = np.array(img)
-        img = preprocess_input(img)
+        img = np.array(img).astype(np.float32)
+        # img = preprocess_input(img)
         if not isBatch:
             img = np.expand_dims(img, axis=0)
 
