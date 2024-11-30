@@ -2,6 +2,7 @@ from cv2.typing import MatLike
 from classes.Arduino import Arduino
 from classes.CNNImage import CNNImage
 from classes.Video import Video
+from classes.Wrapper import Wrapper
 
 # ? ------------------------ CONFIG
 cam_index = 0
@@ -41,7 +42,8 @@ def on_arduino_receive(s: str):
 video = Video(cam_index, img_width, img_height, save_image_key=save_image_key)
 
 
-def loop(img: MatLike):
+def loop():
+    img = video.capture(display=True)
     predicted_class, confidence = cnn.predict(img, isBatch=False)
     print(predicted_class, confidence)
     on_predict(predicted_class, confidence)
@@ -52,4 +54,14 @@ def loop(img: MatLike):
         on_arduino_receive(arduino_str)
 
 
-video.loop(loop)
+def onExit():
+    arduino.close()
+
+
+Wrapper(
+    loop,
+    onExit=onExit,
+    keyboardEvents=[
+        ["d", video.save_image],
+    ],
+)

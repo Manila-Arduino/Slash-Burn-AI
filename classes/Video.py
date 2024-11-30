@@ -14,7 +14,6 @@ class Video:
     cam_index: int = 0
     width: int = 256
     height: int = 256
-    save_image_key: str = "d"
 
     def __post_init__(self):
         # If captures folder does not exist, create it
@@ -48,26 +47,17 @@ class Video:
     def read(self):
         return self.q.get()
 
-    def loop(self, func: Callable):
-        while True:
-            img = self.capture()
+    def capture(self, display: bool) -> MatLike:
+        img = self._capture()
+        cv2.waitKey(1)
+        if display:
+            self._display()
+        return img
 
-            key = cv2.waitKey(1) & 0xFF  # Read the key press once per loop
-
-            func(img)
-
-            self.display()
-
-            if key == ord("q"):  # Exit key
-                break
-
-            if key == ord(self.save_image_key):  # Save image key
-                self.save_image()
-
+    def release(self):
         self.release()
-        print("Done Capturing!")
 
-    def capture(self):
+    def _capture(self):
         frame = self.read()
 
         # Resize
@@ -91,7 +81,7 @@ class Video:
         y = radius + 10  # 10 pixels from the top edge
         cv2.circle(self.frame, (x, y), radius, color, -1)  # Yellow circle
 
-    def display(self):
+    def _display(self):
         cv2.imshow("Capture", self.frame)
 
     def release(self):
