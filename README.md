@@ -9,5 +9,7 @@ MINICOMPUTER SETUP
 7. Git clone
 8. `cd ai`
 9. `p s`
-10. if with tensorflow: `p i tensorflow`
-11. `a`
+10. `a`
+11. batch file autocreate
+12. remove display sleep
+13.
