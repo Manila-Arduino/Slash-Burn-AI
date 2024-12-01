@@ -9,4 +9,5 @@ MINICOMPUTER SETUP
 7. Git clone
 8. `cd ai`
 9. `p s`
-10. `a`
+10. if with tensorflow: `p i tensorflow`
+11. `a`
