@@ -10,6 +10,6 @@ MINICOMPUTER SETUP
 8. `cd ai`
 9. `p s`
 10. `a`
-11. batch file autocreate
-12. remove display sleep
-13.
+11. `call utils\autostart.bat`
+12. Remove display sleep
+13. Remove automatic updates
