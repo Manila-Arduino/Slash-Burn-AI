@@ -2,6 +2,12 @@
 @REM ! p venv, p i package_name, p u package_name, p r
 :: Check if the project folder path is provided
 
+@REM ! RUN PYTHON FILE
+if exist "%~1.py" (
+    python "%~1.py"
+    exit /b
+)
+
 @REM ! INIT IN MINICOMPUTER
 if "%1"=="s" (
     python -m venv venv
