@@ -42,7 +42,8 @@ class Wrapper:
         while self.looping:
             self.loop()
 
-        self.onExit()
+        if self.onExit is not None:
+            self.onExit()
         self.listener.stop()
 
         Rich.printm("Exiting...")

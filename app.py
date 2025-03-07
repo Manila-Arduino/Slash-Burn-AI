@@ -8,7 +8,6 @@ from classes.Wrapper import Wrapper
 cam_index = 0
 img_width = 512
 img_height = 512
-save_image_key = "d"
 classes = ["no_oil", "oil"]
 input_layer_name = "input_layer_4"
 output_layer_name = "output_0"
@@ -39,7 +38,7 @@ def on_arduino_receive(s: str):
 
 
 #! LOOP
-video = Video(cam_index, img_width, img_height, save_image_key=save_image_key)
+video = Video(cam_index, img_width, img_height)
 
 
 def loop():
@@ -62,6 +61,6 @@ Wrapper(
     loop,
     onExit=onExit,
     keyboardEvents=[
-        ["d", video.save_image],
+        ["d", video.save_image],  # type: ignore
     ],
 )

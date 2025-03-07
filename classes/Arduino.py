@@ -8,7 +8,7 @@ class Arduino:
     baudrate: int = 9600
 
     def __post_init__(self):
-        self.use_arduino = self.port is not None and self.port != ""
+        self.use_arduino = self.port != ""
         if self.use_arduino:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=1)
 

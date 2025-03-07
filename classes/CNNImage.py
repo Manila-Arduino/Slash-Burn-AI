@@ -9,7 +9,7 @@ import tensorflow as tf
 from PIL import Image
 import numpy as np
 from typing import List, Tuple
-from keras.applications.mobilenet_v2 import preprocess_input
+from keras.applications.mobilenet_v2 import preprocess_input  # type: ignore
 import cv2
 
 
@@ -37,7 +37,9 @@ class CNNImage:
         img = img.convert("RGB")
 
         if img.width != self.img_width or img.height != self.img_height:
-            img = img.resize((self.img_width, self.img_height), Image.LANCZOS)
+            img = img.resize(
+                (self.img_width, self.img_height), Image.Resampling.LANCZOS
+            )
 
         img = np.array(img)
 

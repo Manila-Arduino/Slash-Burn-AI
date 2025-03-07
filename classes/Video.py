@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 import cv2
 from cv2.typing import MatLike
-from typing import Literal, Callable
+from typing import Any, Literal, Callable
 import uuid
 import threading
 import queue
@@ -54,8 +54,8 @@ class Video:
             self._display()
         return img
 
-    def release(self):
-        self.release()
+    # def release(self):
+    #     self.release()
 
     def _capture(self):
         frame = self.read()
@@ -70,7 +70,7 @@ class Video:
 
         # Display
 
-    def circle(self, color: Literal["yellow", "green"]):
+    def circle(self, color: Any):
         if color == "yellow":
             color = (63, 201, 248)
         elif color == "green":
@@ -79,10 +79,10 @@ class Video:
         radius = 12
         x = self.width - radius - 10  # 10 pixels from the right edge
         y = radius + 10  # 10 pixels from the top edge
-        cv2.circle(self.frame, (x, y), radius, color, -1)  # Yellow circle
+        cv2.circle(self.frame, (x, y), radius, color, -1)  # type: ignore
 
     def _display(self):
-        cv2.imshow("Capture", self.frame)
+        cv2.imshow("Capture", self.frame)  # type: ignore
 
     def release(self):
         self.cap.release()
