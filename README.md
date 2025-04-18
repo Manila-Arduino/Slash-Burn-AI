@@ -15,3 +15,9 @@ Python 3.11
 11. `call utils\autostart.bat`
 12. Remove display sleep
 13. Remove automatic updates
+14. Disable Task Manager / Startup
+15. TODO: Create autostart_chrome.bat {{url}}
+
+@echo off
+start "" chrome --kiosk "https://sleep-device.web.app"
+exit
