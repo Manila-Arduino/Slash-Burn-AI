@@ -27,6 +27,9 @@ class Arduino:
         return self.ser.in_waiting
 
     def read(self):
+        if not self.use_arduino:
+            return ""
+
         try:
             return self.ser.readline().decode("utf-8", errors="replace").strip()
         except UnicodeDecodeError as e:
