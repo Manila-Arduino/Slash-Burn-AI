@@ -51,7 +51,7 @@ class Video:
         img = self._capture()
         cv2.waitKey(1)
         if display:
-            self._display()
+            self.displayImg(img)
         return img
 
     # def release(self):
@@ -81,8 +81,8 @@ class Video:
         y = radius + 10  # 10 pixels from the top edge
         cv2.circle(self.frame, (x, y), radius, color, -1)  # type: ignore
 
-    def _display(self):
-        cv2.imshow("Capture", self.frame)  # type: ignore
+    def displayImg(self, img: MatLike):
+        cv2.imshow("Capture", img)  # type: ignore
 
     def release(self):
         self.cap.release()

@@ -1,3 +1,5 @@
+from typing import List
+from classes.ObjectDetection import MobilenetV2Result, ObjectDetection
 from cv2.typing import MatLike
 from classes.Arduino import Arduino
 from classes.CNNImage import CNNImage
@@ -8,7 +10,6 @@ from classes.Wrapper import Wrapper
 cam_index = 0
 img_width = 512
 img_height = 512
-classes = ["no_oil", "oil"]
 input_layer_name = "input_layer_4"
 output_layer_name = "output_0"
 
@@ -18,7 +19,7 @@ arduino_port = ""
 
 arduino = Arduino(arduino_port)
 cnn = CNNImage(
-    classes,
+    ["no_oil", "oil"],
     r"model.tflite",
     img_width,
     img_height,
@@ -26,9 +27,23 @@ cnn = CNNImage(
     output_layer_name=output_layer_name,
 )
 
+od = ObjectDetection(
+    "ssd_mobilenet_v2_fpnlite",
+    ["crop", "weed"],
+    f"detect.tflite",
+    print_entities=False,
+    threshold=0.99,
+    # threshold=0.99999,
+)
 
-def on_predict(predicted_class: str, confidence: float):
+
+def on_cnn_predict(predicted_class: str, confidence: float):
     # TODO 2 -------------------------------------------------
+    pass
+
+
+def on_od_receive(results: List[MobilenetV2Result]):
+    # TODO 3 ------------------------------------------------
     pass
 
 
@@ -42,11 +57,22 @@ video = Video(cam_index, img_width, img_height)
 
 
 def loop():
-    img = video.capture(display=True)
-    predicted_class, confidence = cnn.predict(img, isBatch=False)
-    print(predicted_class, confidence)
-    on_predict(predicted_class, confidence)
+    #! VIDEO
+    img = video.capture(display=False)
 
+    #! CNN
+    # predicted_class, confidence = cnn.predict(img, isBatch=False)
+    # print(predicted_class, confidence)
+    # on_cnn_predict(predicted_class, confidence)
+
+    #! OBJECT DETECTION
+    img, results = od.detect_objects(img)
+    on_od_receive(results)
+
+    #! DISPLAY VIDEO
+    video.displayImg(img)
+
+    #! ARDUINO
     if arduino.available():
         arduino_str = arduino.read()
         print(f"Arduino received: {arduino_str}")

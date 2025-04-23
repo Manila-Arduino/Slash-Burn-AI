@@ -1,6 +1,4 @@
-MINICOMPUTER SETUP
-
-Python 3.11
+### MINICOMPUTER SETUP
 
 1. Connect to WiFi
 2. Make Windows Dark Mode
@@ -21,3 +19,10 @@ Python 3.11
 @echo off
 start "" chrome --kiosk "https://sleep-device.web.app"
 exit
+
+### MAIN LAPTOP TESTING SETUP
+
+1. "C:\Users\ACER\AppData\Local\Programs\Python\Python311\python.exe" -m venv ./venv
+   or
+1. conda create --prefix ./venv python=3.11.6 -y
+1. conda activate ./venv
