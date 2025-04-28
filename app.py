@@ -6,7 +6,7 @@ from classes.CNNImage import CNNImage
 from classes.Video import Video
 from classes.Wrapper import Wrapper
 
-# ? ------------------------ CONFIG
+# ? -------------------------------- CONSTANTS
 cam_index = 0
 img_width = 512
 img_height = 512
@@ -14,10 +14,11 @@ input_layer_name = "input_layer_4"
 output_layer_name = "output_0"
 
 arduino_port = ""
-# ? ------------------------ CONFIG
 
 
+# ? -------------------------------- CLASSES
 arduino = Arduino(arduino_port)
+video = Video(cam_index, img_width, img_height)
 cnn = CNNImage(
     ["no_oil", "oil"],
     r"model.tflite",
@@ -36,7 +37,10 @@ od = ObjectDetection(
     # threshold=0.99999,
 )
 
+# ? -------------------------------- VARIABLES
 
+
+# ? -------------------------------- FUNCTIONS
 def on_cnn_predict(predicted_class: str, confidence: float):
     # TODO 2 -------------------------------------------------
     pass
@@ -52,10 +56,12 @@ def on_arduino_receive(s: str):
     pass
 
 
-#! LOOP
-video = Video(cam_index, img_width, img_height)
+# ? -------------------------------- SETUP
+def setup():
+    pass
 
 
+# ? -------------------------------- LOOP
 def loop():
     #! VIDEO
     img = video.capture(display=False)
@@ -77,6 +83,10 @@ def loop():
         arduino_str = arduino.read()
         print(f"Arduino received: {arduino_str}")
         on_arduino_receive(arduino_str)
+
+
+# ? -------------------------------- ETC
+setup()
 
 
 def onExit():

@@ -46,4 +46,4 @@ class Wrapper:
             self.onExit()
         self.listener.stop()
 
-        Rich.printm("Exiting...")
+        Rich.print("Exiting...", style="danger")
