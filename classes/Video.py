@@ -1,12 +1,14 @@
 import os
 from dataclasses import dataclass
 import cv2
-from cv2.typing import MatLike
 from typing import Any, Literal, Callable
 import uuid
 import threading
 import queue
 import time
+import numpy as np
+
+MatLike = np.ndarray
 
 
 @dataclass

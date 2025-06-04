@@ -1,11 +1,13 @@
 import os
-from typing import List, Tuple
+from typing import Callable, List, Sequence, Tuple
 
 from classes.BoxedObject import BoxedObject
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import tensorflow as tf
-from cv2.typing import MatLike
+import numpy as np
+
+MatLike = np.ndarray
 import numpy as np
 import cv2
 
@@ -115,7 +117,11 @@ class OD_Default:
 
         self.float_input = self.input_details[0]["dtype"] == np.float32
 
-    def detect(self, img: MatLike) -> Tuple[MatLike, List[BoxedObject]]:
+    def detect(
+        self,
+        img: MatLike,
+        on_od_receive: Callable[[BoxedObject, Sequence[BoxedObject]], None],
+    ) -> MatLike:
         imH, imW, _ = img.shape
         image_resized = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         image_resized = cv2.resize(image_resized, (300, 300))
@@ -191,4 +197,16 @@ class OD_Default:
                 )
 
         results = sorted(results, key=lambda x: x.score, reverse=True)
-        return img, results
+
+        if len(results) > 0:
+            max_area_obj = max(
+                results,
+                key=lambda obj: (obj.boxes[2] - obj.boxes[0])
+                * (obj.boxes[3] - obj.boxes[1]),
+                default=None,
+            )
+
+            if max_area_obj:
+                on_od_receive(max_area_obj, results)
+
+        return img

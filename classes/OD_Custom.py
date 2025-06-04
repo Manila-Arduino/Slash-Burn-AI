@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple
+from typing import Callable, List, Sequence, Tuple
 
 from classes.BoxedObject import BoxedObject
 
@@ -13,7 +13,13 @@ import cv2
 class OD_Custom:
 
     def __init__(
-        self, model_path: str, objects: List[str], threshold: float = 0.5
+        self,
+        model_path: str,
+        objects: List[str],
+        threshold: float = 0.5,
+        img_width: int = 512,
+        img_height: int = 512,
+        max_object_size_percent: float = 0.8,
     ) -> None:
         self.threshold = threshold
         self.objects = objects
@@ -30,7 +36,16 @@ class OD_Custom:
         self.input_mean = 127.5
         self.input_std = 127.5
 
-    def detect(self, img: MatLike) -> Tuple[MatLike, List[BoxedObject]]:
+        self.img_width = img_width
+        self.img_height = img_height
+        self.img_area = self.img_width * self.img_height
+        self.max_object_size_percent = max_object_size_percent
+
+    def detect(
+        self,
+        img: MatLike,
+        on_od_receive: Callable[[BoxedObject, Sequence[BoxedObject]], None],
+    ) -> MatLike:
         imH, imW, _ = img.shape
         image_resized = cv2.resize(img, (self.width, self.height))
 
@@ -64,6 +79,13 @@ class OD_Custom:
                 xmin = int(max(1, (boxes[i][1] * imW)))
                 ymax = int(min(imH, (boxes[i][2] * imH)))
                 xmax = int(min(imW, (boxes[i][3] * imW)))
+
+                area = (xmax - xmin) * (ymax - ymin)
+                area_percent = area / self.img_area
+                # print(f"Area Percent: {area_percent:.2f} for {label}")
+
+                if area_percent > self.max_object_size_percent:
+                    continue
 
                 cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                 # print((xmin, ymin), (xmax, ymax))
@@ -104,4 +126,16 @@ class OD_Custom:
                 )
 
         results = sorted(results, key=lambda x: x.score, reverse=True)
-        return img, results
+
+        if len(results) > 0:
+            max_area_obj = max(
+                results,
+                key=lambda obj: (obj.boxes[2] - obj.boxes[0])
+                * (obj.boxes[3] - obj.boxes[1]),
+                default=None,
+            )
+
+            if max_area_obj:
+                on_od_receive(max_area_obj, results)
+
+        return img

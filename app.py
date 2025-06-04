@@ -1,5 +1,5 @@
+import numpy as np
 from typing import List, Sequence
-from cv2.typing import MatLike
 from classes.Arduino import Arduino
 from classes.BoxedObject import BoxedObject
 from classes.CNNImage import CNNImage
@@ -7,6 +7,8 @@ from classes.OD_Custom import OD_Custom
 from classes.OD_Default import OD_Default
 from classes.Video import Video
 from classes.Wrapper import Wrapper
+
+MatLike = np.ndarray
 
 # ? -------------------------------- CONSTANTS
 cam_index = 0
@@ -30,7 +32,14 @@ cnn = CNNImage(
     output_layer_name=output_layer_name,
 )
 od_default = OD_Default(0.8)
-od_custom = OD_Custom("detect.tflite", ["crop", "weed"], 0.9)
+od_custom = OD_Custom(
+    "detect.tflite",
+    ["crop", "weed"],
+    0.9,
+    img_width=img_width,
+    img_height=img_height,
+    max_object_size_percent=0.80,
+)
 
 # ? -------------------------------- VARIABLES
 
@@ -41,7 +50,7 @@ def on_cnn_predict(predicted_class: str, confidence: float):
     pass
 
 
-def on_od_receive(results: Sequence[BoxedObject]):
+def on_od_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
     # TODO 3 ------------------------------------------------
     pass
 
@@ -67,10 +76,8 @@ def loop():
     # on_cnn_predict(predicted_class, confidence)
 
     #! OBJECT DETECTION
-    img, results = od_default.detect(img)
-    img2, results2 = od_custom.detect(img)
-    on_od_receive(results)
-    on_od_receive(results2)
+    img = od_default.detect(img, on_od_receive=on_od_receive)
+    img2 = od_custom.detect(img, on_od_receive=on_od_receive)
 
     #! DISPLAY VIDEO
     video.displayImg(img)
