@@ -5,9 +5,10 @@ from classes.BoxedObject import BoxedObject
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import tensorflow as tf
-from cv2.typing import MatLike
-import numpy as np
 import cv2
+import numpy as np
+
+MatLike = np.ndarray
 
 
 class OD_Custom:
