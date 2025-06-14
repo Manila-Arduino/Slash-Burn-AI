@@ -1,0 +1,50 @@
+LOGIN:
+```
+username: admin
+password: admin
+```
+
+GENERATE SSH KEY:
+git config --global user.email "rpi@example.com" && git config --global user.name "rpi" && ssh-keygen -t ed25519 -C "rpi@example.com" -f ~/.ssh/id_ed25519 -N '' && cat ~/.ssh/id_ed25519.pub
+
+GIT CLONE:
+git clone {link} ~/Desktop/ai
+
+UPDATE & UPGRADE:
+sudo apt update && sudo apt upgrade -y
+
+PYTHON 3.11:
+(TODO: add tutorial here if not 3.11 default)
+
+VENV:
+cd ~/Desktop/ai && python -m venv --system-site-packages venv && source venv/bin/activate && pip install -r requirements_rpi.txt
+
+TENSORFLOW (optional):
+pip install --upgrade pip setuptools wheel
+sudo apt-get install libhdf5-dev
+pip install tensorflow
+sudo apt install libssl3=3.0.11-1~deb12u2
+
+CAMERA MODULE v3 (optional):
+sudo apt install -y libcamera-apps python3-picamera2 python3-pil
+libcamera-hello
+
+RUN APP:
+Try running `app.py`
+
+DISABLE SCREEN SLEEP:
+sudo nano /etc/lightdm/lightdm.conf
+```
+[Seat:*]
+xserver-command=X -s 0 dpms
+```
+
+AUTOSTART:
+mkdir -p ~/.config/autostart && nano ~/.config/autostart/ai-app.desktop
+```
+[Desktop Entry]
+Type=Application
+Name=AI Camera App
+Exec=bash -c "source /home/admin/Desktop/ai/venv/bin/activate && python /home/admin/Desktop/ai/app.py"
+X-GNOME-Autostart-enabled=true
+```

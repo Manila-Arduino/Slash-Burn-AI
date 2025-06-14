@@ -1,0 +1,12 @@
+# 1. Clone the gpiozero repo somewhere on your Windows machine:
+git clone https://github.com/gpiozero/gpiozero.git C:/ExtraPythonLibs/gpiozero
+git clone https://github.com/raspberrypi/picamera2.git C:/ExtraPythonLibs/picamera2
+
+# 2. In VS Code (or your editor), add that path to “python.analysis.extraPaths”:
+#    (in .vscode/settings.json)
+{
+  "python.analysis.extraPaths": [
+    "C:/ExtraPythonLibs/gpiozero",
+    "C:/ExtraPythonLibs/picamera2",
+  ]
+}

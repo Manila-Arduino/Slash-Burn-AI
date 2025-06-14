@@ -1,0 +1,6 @@
+inquirerpy==0.3.4
+opencv-python==4.11.0.86
+pip-chill==1.0.3
+pynput==1.8.1
+pyserial==3.5
+tensorflow==2.19.0
