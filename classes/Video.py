@@ -6,6 +6,9 @@ import uuid
 import threading
 import queue
 import time
+import numpy as np
+
+MatLike = np.ndarray
 
 # Try to import Picamera2; fall back to OpenCV if unavailable
 try:
@@ -100,7 +103,7 @@ class Video:
         else:
             return self.q.get()
 
-    def capture(self, display: bool) -> Any:
+    def capture(self, display: bool) -> MatLike:
         img = self._capture()
         cv2.waitKey(1)
         if display:
