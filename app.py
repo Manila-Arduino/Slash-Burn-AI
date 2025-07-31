@@ -2,11 +2,10 @@ import numpy as np
 from typing import List, Sequence
 from classes.Arduino import Arduino
 from classes.BoxedObject import BoxedObject
-from classes.CNNImage import CNNImage
 from classes.OD_Custom import OD_Custom
-from classes.OD_Default import OD_Default
 from classes.Video import Video
 from classes.Wrapper import Wrapper
+from classes.rpi.Yolov8n import YoloV8n
 from classes.rpi.rpi import RPI
 
 MatLike = np.ndarray
@@ -23,17 +22,8 @@ arduino_port = ""
 
 # ? -------------------------------- CLASSES
 rpi = RPI()
-arduino = Arduino(arduino_port)
 video = Video(cam_index, img_width, img_height)
-cnn = CNNImage(
-    ["no_oil", "oil"],
-    r"model.tflite",
-    img_width,
-    img_height,
-    input_layer_name=input_layer_name,
-    output_layer_name=output_layer_name,
-)
-od_default = OD_Default(0.8)
+
 od_custom = OD_Custom(
     "detect.tflite",
     ["crop", "weed"],
@@ -43,23 +33,28 @@ od_custom = OD_Custom(
     max_object_size_percent=0.80,
 )
 
+yolov8n = YoloV8n(
+    "yolov11n_seg_density.pt",
+    ["Field", "Forest", "Lake"],
+    0.20,
+    img_width=img_width,
+    img_height=img_height,
+    max_object_size_percent=1.00,
+)
+
 # ? -------------------------------- VARIABLES
 
 
 # ? -------------------------------- FUNCTIONS
-def on_cnn_predict(predicted_class: str, confidence: float):
-    # TODO 2 -------------------------------------------------
-    pass
-
-
 def on_od_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
     # TODO 3 ------------------------------------------------
     pass
 
-
-def on_arduino_receive(s: str):
+def on_yolo_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
     # TODO 3 ------------------------------------------------
     pass
+
+
 
 
 # ? -------------------------------- SETUP
@@ -72,23 +67,19 @@ def loop():
     #! VIDEO
     img = video.capture(display=False)
 
-    #! CNN
-    # predicted_class, confidence = cnn.predict(img, isBatch=False)
-    # print(predicted_class, confidence)
-    # on_cnn_predict(predicted_class, confidence)
+    #! AI 1 - FOREST FIRE [yolov11n]
+    # TODO
+    # img = od_custom.detect(img, on_od_receive=on_od_receive)
 
-    #! OBJECT DETECTION
-    img = od_default.detect(img, on_od_receive=on_od_receive)
-    img2 = od_custom.detect(img, on_od_receive=on_od_receive)
+    #! AI 2 - FOREST DENSITY [yolov11n-seg]
+    img = yolov8n.detect(img, on_yolo_receive=on_yolo_receive)
+
+    #! AI 3 - ILLEGAL LOGGING [sound]
+    # TODO
 
     #! DISPLAY VIDEO
     video.displayImg(img)
 
-    #! ARDUINO
-    if arduino.available():
-        arduino_str = arduino.read()
-        print(f"Arduino received: {arduino_str}")
-        on_arduino_receive(arduino_str)
 
 
 # ? -------------------------------- ETC
@@ -96,8 +87,7 @@ setup()
 
 
 def onExit():
-    arduino.close()
-
+    pass
 
 Wrapper(
     loop,

@@ -32,7 +32,7 @@ class YoloV8n:
     def detect(
         self,
         img: MatLike,
-        on_od_receive: Callable[[BoxedObject, Sequence[BoxedObject]], None],
+        on_yolo_receive: Callable[[BoxedObject, Sequence[BoxedObject]], None],
     ) -> MatLike:
         # run inference
         results = self.model.predict(
@@ -88,6 +88,6 @@ class YoloV8n:
         detections.sort(key=lambda obj: obj.score, reverse=True)
 
         if detections:
-            on_od_receive(detections[0], detections)
+            on_yolo_receive(detections[0], detections)
 
         return img
