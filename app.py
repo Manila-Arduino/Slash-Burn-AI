@@ -2,9 +2,11 @@ import numpy as np
 from typing import List, Sequence
 from classes.Arduino import Arduino
 from classes.BoxedObject import BoxedObject
-from classes.OD_Custom import OD_Custom
+
+# from classes.OD_Custom import OD_Custom
 from classes.Video import Video
 from classes.Wrapper import Wrapper
+from classes.rpi.Yolov11nSeg import YoloV11nSeg
 from classes.rpi.Yolov8n import YoloV8n
 from classes.rpi.rpi import RPI
 
@@ -24,19 +26,19 @@ arduino_port = ""
 rpi = RPI()
 video = Video(cam_index, img_width, img_height)
 
-od_custom = OD_Custom(
-    "detect.tflite",
-    ["crop", "weed"],
-    0.9,
-    img_width=img_width,
-    img_height=img_height,
-    max_object_size_percent=0.80,
-)
+# od_custom = OD_Custom(
+#     "detect.tflite",
+#     ["crop", "weed"],
+#     0.9,
+#     img_width=img_width,
+#     img_height=img_height,
+#     max_object_size_percent=0.80,
+# )
 
-yolov8n = YoloV8n(
+yolov11n_seg = YoloV11nSeg(
     "yolov11n_seg_density.pt",
     ["Field", "Forest", "Lake"],
-    0.20,
+    0.60,
     img_width=img_width,
     img_height=img_height,
     max_object_size_percent=1.00,
@@ -50,11 +52,10 @@ def on_od_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
     # TODO 3 ------------------------------------------------
     pass
 
-def on_yolo_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
+
+def on_yolov11n_seg_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
     # TODO 3 ------------------------------------------------
     pass
-
-
 
 
 # ? -------------------------------- SETUP
@@ -72,14 +73,13 @@ def loop():
     # img = od_custom.detect(img, on_od_receive=on_od_receive)
 
     #! AI 2 - FOREST DENSITY [yolov11n-seg]
-    img = yolov8n.detect(img, on_yolo_receive=on_yolo_receive)
+    img = yolov11n_seg.detect(img, on_yolov11n_seg_receive=on_yolov11n_seg_receive)
 
     #! AI 3 - ILLEGAL LOGGING [sound]
     # TODO
 
     #! DISPLAY VIDEO
     video.displayImg(img)
-
 
 
 # ? -------------------------------- ETC
@@ -89,10 +89,11 @@ setup()
 def onExit():
     pass
 
+
 Wrapper(
     loop,
     onExit=onExit,
     keyboardEvents=[
-        ["d", video.save_image],  # type: ignore
+        # ["d", video.save_image],  # type: ignore
     ],
 )
