@@ -1,14 +1,23 @@
+from datetime import datetime
 import numpy as np
-from typing import List, Sequence
-from classes.Arduino import Arduino
+from typing import List, Sequence, Union
+
+from pydantic import BaseModel
+import rich
+from classes.ClassificationObject import ClassificationObject
 from classes.BoxedObject import BoxedObject
 
 # from classes.OD_Custom import OD_Custom
+from classes.Rich import Rich
+from classes.SegmentedObject import SegmentedObject
 from classes.Video import Video
 from classes.Wrapper import Wrapper
-from classes.rpi.Yolov11nSeg import YoloV11nSeg
+from classes.Yolov11nCls import Yolov11nCls
+from classes.firebase_helper import Firebase
+from classes.Yolov11nSeg import YoloV11nSeg
 from classes.rpi.Yolov8n import YoloV8n
 from classes.rpi.rpi import RPI
+from decorators.execute_interval import execute_interval
 
 MatLike = np.ndarray
 
@@ -16,46 +25,112 @@ MatLike = np.ndarray
 cam_index = 0
 img_width = 512
 img_height = 512
-input_layer_name = "input_layer_4"
-output_layer_name = "output_0"
-
-arduino_port = ""
+FOREST_FIRE_CONFIDENCE_THRESHOLD = 0.10
+FOREST_FIRE_AREA_THRESHOLD = 0.10
+DENSITY_CONFIDENCE_THRESHOLD = 0.10
+ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD = 0.10
 
 
 # ? -------------------------------- CLASSES
 rpi = RPI()
 video = Video(cam_index, img_width, img_height)
+firebase = Firebase(
+    "credentials.json",
+    use_storage=False,
+    use_firestore=True,
+)
 
-# od_custom = OD_Custom(
-#     "detect.tflite",
-#     ["crop", "weed"],
-#     0.9,
-#     img_width=img_width,
-#     img_height=img_height,
-#     max_object_size_percent=0.80,
-# )
 
-yolov11n_seg = YoloV11nSeg(
-    "yolov11n_seg_density.pt",
-    ["Field", "Forest", "Lake"],
-    0.60,
+class Logs(BaseModel):
+    id: str
+    forest_fire: bool
+    forest_density: float
+    illegal_logging: bool
+
+
+yolov11n_seg_fire = YoloV11nSeg(
+    "yolov11n_seg_fire.pt",
+    [("Fire", (0, 0, 255)), ("Fire", (0, 0, 255))],
+    threshold=FOREST_FIRE_CONFIDENCE_THRESHOLD,
     img_width=img_width,
     img_height=img_height,
     max_object_size_percent=1.00,
+    allowed=["Fire"],
 )
 
+yolov11n_seg_density = YoloV11nSeg(
+    "yolov11n_seg_density.pt",
+    [
+        ("Building", (255, 140, 0)),
+        ("Field", (0, 255, 0)),
+        ("Forest", (255, 0, 0)),
+        ("Lake", (0, 0, 255)),
+        ("Road", (128, 128, 128)),
+    ],
+    threshold=DENSITY_CONFIDENCE_THRESHOLD,
+    img_width=img_width,
+    img_height=img_height,
+    max_object_size_percent=1.00,
+    allowed=["Forest"],
+)
+
+yolov11n_cls_logging = Yolov11nCls(
+    "yolov11n_cls_logging.pt",
+    ["Illegal Logging", "Legal Logging"],
+    threshold=ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD,
+    img_width=img_width,
+    img_height=img_height,
+)
+
+
 # ? -------------------------------- VARIABLES
+forest_fire = False
+density = 0.0
+illegal_logging = False
 
 
 # ? -------------------------------- FUNCTIONS
-def on_od_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
-    # TODO 3 ------------------------------------------------
-    pass
+def on_yolov11n_seg_fire_receive(
+    max_object: SegmentedObject, results: Sequence[SegmentedObject]
+):
+    global forest_fire
+    total_fire_area = min(sum(obj.area_percent for obj in results), 1.0)
+    forest_fire = total_fire_area >= FOREST_FIRE_AREA_THRESHOLD
 
 
-def on_yolov11n_seg_receive(max_object: BoxedObject, results: Sequence[BoxedObject]):
-    # TODO 3 ------------------------------------------------
-    pass
+def on_yolov11n_seg_density_receive(
+    max_object: SegmentedObject, results: Sequence[SegmentedObject]
+):
+    global density
+    density = min(sum(obj.area_percent for obj in results), 1.0)
+
+
+def on_yolov11n_cls_logging_receive(classification: Union[ClassificationObject, None]):
+    global illegal_logging
+    illegal_logging = (
+        classification is not None and classification.entity == "Illegal Logging"
+    )
+
+
+@execute_interval(10)
+def firebase_upload():
+    global forest_fire, density, illegal_logging
+
+    current_time_iso = datetime.now().astimezone().isoformat()
+
+    logs = Logs(
+        id=current_time_iso,
+        forest_fire=forest_fire,
+        forest_density=round(density, 2),
+        illegal_logging=illegal_logging,
+    )
+
+    rich.print(logs)
+
+    firebase.write_firestore(
+        f"logs/{current_time_iso}",
+        logs,
+    )
 
 
 # ? -------------------------------- SETUP
@@ -68,18 +143,26 @@ def loop():
     #! VIDEO
     img = video.capture(display=False)
 
-    #! AI 1 - FOREST FIRE [yolov11n]
-    # TODO
-    # img = od_custom.detect(img, on_od_receive=on_od_receive)
+    #! AI 1 - FOREST FIRE [yolov11n-seg]
+    img = yolov11n_seg_fire.detect(
+        img, on_yolov11n_seg_receive=on_yolov11n_seg_fire_receive
+    )
 
     #! AI 2 - FOREST DENSITY [yolov11n-seg]
-    img = yolov11n_seg.detect(img, on_yolov11n_seg_receive=on_yolov11n_seg_receive)
+    img = yolov11n_seg_density.detect(
+        img, on_yolov11n_seg_receive=on_yolov11n_seg_density_receive
+    )
 
-    #! AI 3 - ILLEGAL LOGGING [sound]
-    # TODO
+    #! AI 3 - ILLEGAL LOGGING [yolov11n-cls]
+    img = yolov11n_cls_logging.detect(
+        img, on_yolov11n_cls_receive=on_yolov11n_cls_logging_receive
+    )
 
     #! DISPLAY VIDEO
     video.displayImg(img)
+
+    #! UPLOAD TO FIREBASE
+    firebase_upload()
 
 
 # ? -------------------------------- ETC
