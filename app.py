@@ -144,21 +144,18 @@ def loop():
     img = video.capture(display=False)
 
     #! AI 1 - FOREST FIRE [yolov11n-seg]
-    img = yolov11n_seg_fire.detect(
-        img, on_yolov11n_seg_receive=on_yolov11n_seg_fire_receive
-    )
+    yolov11n_seg_fire.detect(img, on_yolov11n_seg_fire_receive)
 
     #! AI 2 - FOREST DENSITY [yolov11n-seg]
-    img = yolov11n_seg_density.detect(
-        img, on_yolov11n_seg_receive=on_yolov11n_seg_density_receive
-    )
+    yolov11n_seg_density.detect(img, on_yolov11n_seg_density_receive)
 
     #! AI 3 - ILLEGAL LOGGING [yolov11n-cls]
-    img = yolov11n_cls_logging.detect(
-        img, on_yolov11n_cls_receive=on_yolov11n_cls_logging_receive
-    )
+    yolov11n_cls_logging.detect(img, on_yolov11n_cls_logging_receive)
 
     #! DISPLAY VIDEO
+    img = yolov11n_seg_fire.display(img)
+    img = yolov11n_seg_density.display(img)
+    img = yolov11n_cls_logging.display(img)
     video.displayImg(img)
 
     #! UPLOAD TO FIREBASE

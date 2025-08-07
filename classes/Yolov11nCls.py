@@ -29,6 +29,9 @@ class Yolov11nCls:
         self,
         img: MatLike,
         on_yolov11n_cls_receive: Callable[[Union[ClassificationObject, None]], None],
-    ) -> MatLike:
+    ) -> None:
         on_yolov11n_cls_receive(None)  # TODO: UPDATE, just temporary
+
+    def display(self, img: MatLike) -> MatLike:
+        # TODO: IMPLEMENT
         return img
