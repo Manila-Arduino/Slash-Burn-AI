@@ -44,9 +44,9 @@ class YoloV8n:
         )
         r = results[0]
         boxes = r.boxes
-        xyxy = boxes.xyxy.cpu().numpy()  # [N,4]
-        scores = boxes.conf.cpu().numpy()  # [N]
-        classes = boxes.cls.cpu().numpy().astype(int)  # [N]
+        xyxy = boxes.xyxy.cpu().numpy()  # type: ignore
+        scores = boxes.conf.cpu().numpy()  # type: ignore
+        classes = boxes.cls.cpu().numpy().astype(int)  # type: ignore
 
         detections: List[BoxedObject] = []
         for (x1, y1, x2, y2), cls, score in zip(xyxy, classes, scores):
