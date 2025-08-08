@@ -26,7 +26,7 @@ cam_index = 0
 img_width = 512
 img_height = 512
 FOREST_FIRE_CONFIDENCE_THRESHOLD = 0.86
-FOREST_FIRE_AREA_THRESHOLD = 0.20
+FOREST_FIRE_AREA_THRESHOLD = 0.05
 DENSITY_CONFIDENCE_THRESHOLD = 0.10
 ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD = 0.10
 
@@ -95,6 +95,7 @@ def on_yolov11n_seg_fire_receive(
 ):
     global forest_fire
     total_fire_area = min(sum(obj.area_percent for obj in results), 1.0)
+    print(f"Total fire area: {total_fire_area:.2f}")
     forest_fire = total_fire_area >= FOREST_FIRE_AREA_THRESHOLD
 
 
