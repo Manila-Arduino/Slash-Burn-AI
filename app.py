@@ -1,4 +1,8 @@
 from datetime import datetime
+import os
+import socket
+import subprocess
+from time import sleep
 import numpy as np
 from typing import List, Sequence, Union
 
@@ -21,6 +25,11 @@ from decorators.execute_interval import execute_interval
 
 MatLike = np.ndarray
 
+
+#! START MONA SERVER
+# subprocess.Popen('start cmd /k "MonaServer_Win64\\MonaServer.exe"', shell=True)
+# sleep(1)
+
 # ? -------------------------------- CONSTANTS
 cam_index = 0
 img_width = 512
@@ -33,7 +42,23 @@ ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD = 0.10
 
 # ? -------------------------------- CLASSES
 rpi = RPI()
-video = Video(cam_index, img_width, img_height)
+
+
+def get_ip_default_route() -> str:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))  # no packets actually sent
+        return s.getsockname()[0]
+    finally:
+        s.close()
+
+
+video = Video(
+    cam_index,
+    img_width,
+    img_height,
+    rtmp_url=f"rtmp://{get_ip_default_route()}/live/key",
+)
 firebase = Firebase(
     "credentials.json",
     use_storage=False,
@@ -168,7 +193,7 @@ setup()
 
 
 def onExit():
-    pass
+    video.release()
 
 
 Wrapper(
