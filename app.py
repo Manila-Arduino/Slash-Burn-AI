@@ -1,3 +1,5 @@
+USE_CAMERA = True
+
 from datetime import datetime
 import os
 import socket
@@ -38,6 +40,8 @@ FOREST_FIRE_CONFIDENCE_THRESHOLD = 0.86
 FOREST_FIRE_AREA_THRESHOLD = 0.05
 DENSITY_CONFIDENCE_THRESHOLD = 0.10
 ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD = 0.10
+LOGGING_CONFIDENCE_THRESHOLD = 0.10
+LOGGING_AREA_THRESHOLD = 0.05
 
 
 # ? -------------------------------- CLASSES
@@ -53,12 +57,20 @@ def get_ip_default_route() -> str:
         s.close()
 
 
-video = Video(
-    cam_index,
-    img_width,
-    img_height,
-    rtmp_url=f"rtmp://{get_ip_default_route()}/live/key",
-)
+if USE_CAMERA:
+    video = Video(
+        cam_index,
+        img_width,
+        img_height,
+    )
+else:
+    video = Video(
+        cam_index,
+        img_width,
+        img_height,
+        rtmp_url=f"rtmp://{get_ip_default_route()}/live/key",
+    )
+
 firebase = Firebase(
     "credentials.json",
     use_storage=False,
@@ -99,13 +111,26 @@ yolov11n_seg_density = YoloV11nSeg(
     allowed=["Forest"],
 )
 
-yolov11n_cls_logging = Yolov11nCls(
-    "yolov11n_cls_logging.pt",
-    ["Illegal Logging", "Legal Logging"],
-    threshold=ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD,
+yolov11n_seg_logging = YoloV11nSeg(
+    "yolov11n_seg_logging.pt",
+    [
+        ("Circle", (255, 140, 0)),
+        ("Log", (255, 0, 0)),
+    ],
+    threshold=LOGGING_CONFIDENCE_THRESHOLD,
     img_width=img_width,
     img_height=img_height,
+    max_object_size_percent=0.9,
+    allowed=["Log"],
 )
+
+# yolov11n_cls_logging = Yolov11nCls(
+#     "yolov11n_cls_logging.pt",
+#     ["Illegal Logging", "Legal Logging"],
+#     threshold=ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD,
+#     img_width=img_width,
+#     img_height=img_height,
+# )
 
 
 # ? -------------------------------- VARIABLES
@@ -135,6 +160,15 @@ def on_yolov11n_cls_logging_receive(classification: Union[ClassificationObject, 
     global illegal_logging
     illegal_logging = (
         classification is not None and classification.entity == "Illegal Logging"
+    )
+
+
+def on_yolov11n_seg_logging_receive(
+    max_object: SegmentedObject, results: Sequence[SegmentedObject]
+):
+    global illegal_logging
+    illegal_logging = (
+        min(sum(obj.area_percent for obj in results), 1.0) >= LOGGING_AREA_THRESHOLD
     )
 
 
@@ -176,16 +210,18 @@ def loop():
     yolov11n_seg_density.detect(img, on_yolov11n_seg_density_receive)
 
     #! AI 3 - ILLEGAL LOGGING [yolov11n-cls]
-    yolov11n_cls_logging.detect(img, on_yolov11n_cls_logging_receive)
+    yolov11n_seg_logging.detect(img, on_yolov11n_seg_logging_receive)
+    # yolov11n_cls_logging.detect(img, on_yolov11n_cls_logging_receive)
 
     #! DISPLAY VIDEO
     img = yolov11n_seg_fire.display(img)
     img = yolov11n_seg_density.display(img)
-    img = yolov11n_cls_logging.display(img)
+    img = yolov11n_seg_logging.display(img)
+    # img = yolov11n_cls_logging.display(img)
     video.displayImg(img)
 
     #! UPLOAD TO FIREBASE
-    firebase_upload()
+    # firebase_upload()
 
 
 # ? -------------------------------- ETC
