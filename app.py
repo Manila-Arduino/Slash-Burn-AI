@@ -1,4 +1,4 @@
-USE_CAMERA = True
+USE_CAMERA = False
 
 from datetime import datetime
 import os
@@ -221,7 +221,7 @@ def loop():
     video.displayImg(img)
 
     #! UPLOAD TO FIREBASE
-    # firebase_upload()
+    firebase_upload()
 
 
 # ? -------------------------------- ETC
