@@ -1,7 +1,10 @@
-USE_CAMERA = True
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # looks for .env in current working dir
+USE_CAMERA = os.getenv("USE_CAMERA") in ["True", "true", "1"]
 
 from datetime import datetime
-import os
 import socket
 import subprocess
 from time import sleep
@@ -40,7 +43,7 @@ FOREST_FIRE_CONFIDENCE_THRESHOLD = 0.86
 FOREST_FIRE_AREA_THRESHOLD = 0.05
 DENSITY_CONFIDENCE_THRESHOLD = 0.10
 ILLEGAL_LOGGING_CONFIDENCE_THRESHOLD = 0.10
-LOGGING_CONFIDENCE_THRESHOLD = 0.10
+LOGGING_CONFIDENCE_THRESHOLD = 0.60
 LOGGING_AREA_THRESHOLD = 0.05
 
 
