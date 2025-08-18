@@ -1,4 +1,4 @@
-USE_CAMERA = False
+USE_CAMERA = True
 
 from datetime import datetime
 import os
